@@ -103,7 +103,7 @@ module WooCommerce
     def get_url
       url = @url
       url = "#{url}/" unless url.end_with? '/'
-      url = "#{url}wp-json/#{@version}"
+      url = "#{url}wp-json/wc/#{@version}"
 
       # @is_ssl ? url : oauth_url(url, method)
       url

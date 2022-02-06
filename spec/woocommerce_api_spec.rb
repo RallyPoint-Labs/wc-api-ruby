@@ -23,7 +23,7 @@ describe WooCommerce::API do
 
   describe 'Test Basic Auth Get' do
     before do
-      WebMock.stub_request(:get, 'https://dev.test/wp-json/v3/customers').with(
+      WebMock.stub_request(:get, 'https://dev.test/wp-json/wc/v3/customers').with(
         headers: {
           'Accept'=>'application/json',
           'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
