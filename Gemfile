@@ -1,10 +1,6 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
 
-gem "httparty"
-gem "json"
+source 'https://rubygems.org'
+gemspec
 
-group :test do
-  gem "rake"
-  gem "minitest"
-  gem "fakeweb"
-end
+gem 'rubocop', require: false

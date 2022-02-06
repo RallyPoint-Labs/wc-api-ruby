@@ -1,13 +1,14 @@
-require "httparty"
-require "json"
+# frozen_string_literal: true
 
-require "woocommerce_api/oauth"
-require "woocommerce_api/version"
+require 'faraday'
+require 'json'
+
+require 'woocommerce_api/oauth'
+require 'woocommerce_api/version'
 
 module WooCommerce
   class API
-
-    def initialize url, consumer_key, consumer_secret, args = {}
+    def initialize(url, consumer_key, consumer_secret, args = {})
       # Required args
       @url = url
       @consumer_key = consumer_key
@@ -15,24 +16,17 @@ module WooCommerce
 
       # Optional args
       defaults = {
-        wp_api: false,
-        version: "v3",
+        version: 'v3',
         verify_ssl: true,
-        signature_method: "HMAC-SHA256",
-        httparty_args: {}
+        signature_method: 'HMAC-SHA256',
       }
-      args = defaults.merge(args)
+      # args = defaults.merge(args)
 
-      @wp_api = args[:wp_api]
-      @version = args[:version]
-      @verify_ssl = args[:verify_ssl] == true
-      @signature_method = args[:signature_method]
-      @debug_mode = args[:debug_mode]
-      @query_string_auth = args[:query_string_auth]
-      @httparty_args = args[:httparty_args]
+      @version = defaults[:version]
+      @signature_method = defaults[:signature_method]
 
       # Internal args
-      @is_ssl = @url.start_with? "https"
+      @is_ssl = @url.start_with? 'https'
     end
 
     # Public: GET requests.
@@ -41,7 +35,7 @@ module WooCommerce
     # query    - A Hash with query params.
     #
     # Returns the request Hash.
-    def get endpoint, query = nil
+    def get(endpoint, query = nil)
       do_request :get, add_query_params(endpoint, query)
     end
 
@@ -51,7 +45,7 @@ module WooCommerce
     # data     - The Hash data for the request.
     #
     # Returns the request Hash.
-    def post endpoint, data
+    def post(endpoint, data)
       do_request :post, endpoint, data
     end
 
@@ -61,7 +55,7 @@ module WooCommerce
     # data     - The Hash data for the request.
     #
     # Returns the request Hash.
-    def put endpoint, data
+    def put(endpoint, data)
       do_request :put, endpoint, data
     end
 
@@ -71,7 +65,7 @@ module WooCommerce
     # query    - A Hash with query params.
     #
     # Returns the request Hash.
-    def delete endpoint, query = nil
+    def delete(endpoint, query = nil)
       do_request :delete, add_query_params(endpoint, query)
     end
 
@@ -80,7 +74,7 @@ module WooCommerce
     # endpoint - A String naming the request endpoint.
     #
     # Returns the request Hash.
-    def options endpoint
+    def options(endpoint)
       do_request :options, add_query_params(endpoint, nil)
     end
 
@@ -92,12 +86,12 @@ module WooCommerce
     # data     - A hash of data to flatten and append
     #
     # Returns an endpoint string with the data appended
-    def add_query_params endpoint, data
+    def add_query_params(endpoint, data)
       return endpoint if data.nil? || data.empty?
 
-      endpoint += "?" unless endpoint.include? "?"
-      endpoint += "&" unless endpoint.end_with? "?"
-      endpoint + URI.encode(flatten_hash(data).join("&"))
+      endpoint += '?' unless endpoint.include? '?'
+      endpoint += '&' unless endpoint.end_with? '?'
+      endpoint + CGI.escape(flatten_hash(data).join('&'))
     end
 
     # Internal: Get URL for requests
@@ -106,13 +100,13 @@ module WooCommerce
     # method   - The method used in the url (for oauth querys)
     #
     # Returns the endpoint String.
-    def get_url endpoint, method
-      api = @wp_api ? 'wp-json' : 'wc-api'
+    def get_url
       url = @url
-      url = "#{url}/" unless url.end_with? "/"
-      url = "#{url}#{api}/#{@version}/#{endpoint}"
+      url = "#{url}/" unless url.end_with? '/'
+      url = "#{url}wp-json/#{@version}"
 
-      @is_ssl ? url : oauth_url(url, method)
+      # @is_ssl ? url : oauth_url(url, method)
+      url
     end
 
     # Internal: Requests default options.
@@ -122,43 +116,37 @@ module WooCommerce
     # data     - The Hash data for the request.
     #
     # Returns the response in JSON String.
-    def do_request method, endpoint, data = {}
-      url = get_url(endpoint, method)
-      options = {
-        format: :json
-      }
+    def do_request(method, endpoint, data = {})
 
       # Allow custom HTTParty args.
-      options = options.merge(@httparty_args)
+      options = {}
 
-      # Set headers.
-      options[:headers] = {
-        "User-Agent" => "WooCommerce API Client-Ruby/#{WooCommerce::VERSION}",
-        "Accept" => "application/json"
-      }
-      options[:headers]["Content-Type"] = "application/json;charset=utf-8" if !data.empty?
-
-      # Set basic authentication.
-      if @is_ssl
-        options[:verify] = @verify_ssl
-
-        if @query_string_auth
-          options.merge!(query: {
-            consumer_key: @consumer_key,
-            consumer_secret: @consumer_secret
-          })
-        else
-          options.merge!(basic_auth: {
-            username: @consumer_key,
-            password: @consumer_secret
-          })
-        end
+      faraday_connection = Faraday.new(
+        url: get_url,
+        ssl: {
+          verify: true
+        }
+      ) do |conn|
+        conn.request :authorization, :basic, @consumer_key, @consumer_secret
       end
 
-      options.merge!(debug_output: $stdout) if @debug_mode
-      options.merge!(body: data.to_json) if !data.empty?
+      faraday_connection.send(method, endpoint) do |req|
 
-      HTTParty.send(method, url, options)
+        # Set headers.
+        req.headers = {
+          'User-Agent' => "WooCommerce API Client-Ruby/#{WooCommerce::VERSION}",
+          'Accept' => 'application/json'
+        }
+
+        req.headers['Content-Type'] = 'application/json;charset=utf-8' unless data.empty?
+
+        # Data Body
+        req.body = data.to_json unless data.empty?
+      end
+
+
+      # curl https://example.com/wp-json/wc/v3/system_status \ -u consumer_key:consumer_secret
+
     end
 
     # Internal: Generates an oauth url given current settings
@@ -167,7 +155,7 @@ module WooCommerce
     # method - The HTTP verb of the request
     #
     # Returns a url to be used for the query.
-    def oauth_url url, method
+    def oauth_url(url, method)
       oauth = WooCommerce::OAuth.new(
         url,
         method,
@@ -184,7 +172,7 @@ module WooCommerce
     # hash - A hash to flatten
     #
     # Returns an array full of key value paired strings
-    def flatten_hash hash
+    def flatten_hash(hash)
       hash.flat_map do |key, value|
         case value
         when Hash
