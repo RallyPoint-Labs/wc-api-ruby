@@ -5,7 +5,7 @@ require 'woocommerce_api'
 
 
 describe WooCommerce::API do
-  let(:basic_auth) {
+  let(:woo_commerce_config) {
     WooCommerce::API.new(
       'https://dev.test/',
       'user',
@@ -13,103 +13,67 @@ describe WooCommerce::API do
     )
   }
 
-  let(:oauth) {
-    WooCommerce::API.new(
-      'http://dev.test/',
-      'user',
-      'pass'
-    )
-  }
+  let(:basic_auth_mock) { 'Basic dXNlcjpwYXNz' }
 
-  describe 'Test Basic Auth Get' do
+  describe 'Test Products Get' do
     before do
-      WebMock.stub_request(:get, 'https://dev.test/wp-json/wc/v3/customers').with(
+      WebMock.stub_request(:get, 'https://dev.test/wp-json/wc/v3/products').with(
         headers: {
           'Accept'=>'application/json',
           'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-          'Authorization'=>'Basic dXNlcjpwYXNz',
+          'Authorization'=> basic_auth_mock,
           'User-Agent'=>'WooCommerce API Client-Ruby/1.4.0'
         }
-      ).to_return(status: 200, body: '{"customers":[]}', headers: {})
-      puts basic_auth.get('customers')
+      ).to_return(status: 200, body: '{"products":[]}', headers: {})
     end
-    it { expect(basic_auth.get('customers').status).to eq(200)}
+    it { expect(woo_commerce_config.get('products').status).to eq(200)}
   end
 
-  describe 'Test Oauth Get' do
+  describe 'Test Products Create' do
+    let(:data) {
+      product: {
+        title: 'Testing product'
+      }
+    }
     before do
+      WebMock.stub_request(:post, 'https://dev.test/wp-json/wc/v3/products').with(
+        headers: {
+          'Accept'=>'application/json',
+          'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Authorization'=> basic_auth_mock,
+          'User-Agent'=>'WooCommerce API Client-Ruby/1.4.0'
+        }
+      ).to_return(status: 200, body: '{"products":[]}', headers: {})
 
     end
-    it {}
+    it { expect(woo_commerce_config.post('products', data).status).to eq(200)}
   end
 
-  describe 'Test Oauth Get Puts Data In Alpha Order' do
-    before do
+  # describe 'Test Products Update' do
+  #   before do
+  #     WebMock.stub_request(:put, 'https://dev.test/wp-json/wc/v3/products').with(
+  #       headers: {
+  #         'Accept'=>'application/json',
+  #         'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+  #         'Authorization'=> basic_auth_mock,
+  #         'User-Agent'=>'WooCommerce API Client-Ruby/1.4.0'
+  #       }
+  #     ).to_return(status: 200, body: '{"products":[]}', headers: {})
+  #   end
+  #   it { expect(woo_commerce_config.get('products').status).to eq(200)}
+  # end
 
-    end
-    it {}
-  end
-
-  describe 'Test Basic Auth Post' do
-    before do
-
-    end
-    it {}
-  end
-
-  describe 'Test Oauth Post' do
-    before do
-
-    end
-    it {}
-  end
-
-  describe 'Test Basic Auth Put' do
-    before do
-
-    end
-    it {}
-  end
-
-  describe 'Test Oauth Put' do
-    before do
-
-    end
-    it {}
-  end
-
-  describe 'Test Basic Auth Delete' do
-    before do
-
-    end
-    it {}
-  end
-
-  describe 'Test Basic Auth Delete Params' do
-    before do
-
-    end
-    it {}
-  end
-
-  describe 'Test Oauth Put' do
-    before do
-
-    end
-    it {}
-  end
-
-  describe 'Test Adding Query Params' do
-    before do
-
-    end
-    it {}
-  end
-
-  describe 'Test Invalid Signature Method' do
-    before do
-
-    end
-    it {}
-  end
+  # describe 'Test Products Delete' do
+  #   before do
+  #     WebMock.stub_request(:delete, 'https://dev.test/wp-json/wc/v3/products').with(
+  #       headers: {
+  #         'Accept'=>'application/json',
+  #         'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+  #         'Authorization'=> basic_auth_mock,
+  #         'User-Agent'=>'WooCommerce API Client-Ruby/1.4.0'
+  #       }
+  #     ).to_return(status: 200, body: '{"products":[]}', headers: {})
+  #   end
+  #   it { expect(woo_commerce_config.get('products').status).to eq(200)}
+  # end
 end

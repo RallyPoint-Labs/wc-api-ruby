@@ -8,6 +8,7 @@ require 'woocommerce_api/version'
 
 module WooCommerce
   class API
+    class InvalidSslUrl < StandardError; end
     def initialize(url, consumer_key, consumer_secret, args = {})
       # Required args
       @url = url
@@ -27,6 +28,8 @@ module WooCommerce
 
       # Internal args
       @is_ssl = @url.start_with? 'https'
+
+      raise InvalidSslUrl if !@is_ssl
     end
 
     # Public: GET requests.
@@ -104,8 +107,6 @@ module WooCommerce
       url = @url
       url = "#{url}/" unless url.end_with? '/'
       url = "#{url}wp-json/wc/#{@version}"
-
-      # @is_ssl ? url : oauth_url(url, method)
       url
     end
 
