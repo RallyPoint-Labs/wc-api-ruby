@@ -94,8 +94,6 @@ module WooCommerce
         consumer_key: @consumer_key,
         consumer_secret: @consumer_secret
       )
-      puts "Updated the data"
-      puts data.inspect
       return endpoint if data.nil? || data.empty?
       endpoint += '?' unless endpoint.include? '?'
       endpoint += '&' unless endpoint.end_with? '?'
@@ -108,8 +106,6 @@ module WooCommerce
         consumer_key: @consumer_key,
         consumer_secret: @consumer_secret
       }
-      puts "Updated the data"
-      puts data.inspect
       endpoint += '?' unless endpoint.include? '?'
       endpoint += '&' unless endpoint.end_with? '?'
       endpoint + flatten_hash(data).join('&')
@@ -125,7 +121,6 @@ module WooCommerce
       url = @url
       url = "#{url}/" unless url.end_with? '/'
       url = "#{url}wp-json/wc/#{@version}"
-      puts url
       url
     end
 
@@ -149,8 +144,6 @@ module WooCommerce
       ) do |conn|
         conn.request :authorization, :basic, @consumer_key, @consumer_secret
       end
-
-      puts endpoint
 
       faraday_connection.send(method, endpoint) do |req|
 
