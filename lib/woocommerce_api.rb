@@ -137,6 +137,8 @@ module WooCommerce
         conn.request :authorization, :basic, @consumer_key, @consumer_secret
       end
 
+      puts endpoint
+
       faraday_connection.send(method, endpoint) do |req|
 
         # Set headers.
