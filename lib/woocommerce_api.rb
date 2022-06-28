@@ -94,6 +94,8 @@ module WooCommerce
         consumer_key: @consumer_key,
         consumer_secret: @consumer_secret
       )
+      puts "Updated the data"
+      puts data.inspect
       return endpoint if data.nil? || data.empty?
       endpoint += '?' unless endpoint.include? '?'
       endpoint += '&' unless endpoint.end_with? '?'
@@ -110,6 +112,7 @@ module WooCommerce
       url = @url
       url = "#{url}/" unless url.end_with? '/'
       url = "#{url}wp-json/wc/#{@version}"
+      puts url
       url
     end
 
