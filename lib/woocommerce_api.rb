@@ -49,7 +49,7 @@ module WooCommerce
     #
     # Returns the request Hash.
     def post(endpoint, data)
-      do_request :post, endpoint, data
+      do_request :post, add_auth_params(endpoint), data
     end
 
     # Public: PUT requests.
@@ -59,7 +59,7 @@ module WooCommerce
     #
     # Returns the request Hash.
     def put(endpoint, data)
-      do_request :put, endpoint, data
+      do_request :put, add_auth_params(endpoint), data
     end
 
     # Public: DELETE requests.
@@ -99,7 +99,19 @@ module WooCommerce
       return endpoint if data.nil? || data.empty?
       endpoint += '?' unless endpoint.include? '?'
       endpoint += '&' unless endpoint.end_with? '?'
-      # endpoint + CGI.escape(flatten_hash(data).join('&'))
+      endpoint + flatten_hash(data).join('&')
+    end
+
+
+    def add_auth_params(endpoint)
+      data = {
+        consumer_key: @consumer_key,
+        consumer_secret: @consumer_secret
+      }
+      puts "Updated the data"
+      puts data.inspect
+      endpoint += '?' unless endpoint.include? '?'
+      endpoint += '&' unless endpoint.end_with? '?'
       endpoint + flatten_hash(data).join('&')
     end
 
