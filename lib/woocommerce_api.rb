@@ -90,8 +90,11 @@ module WooCommerce
     #
     # Returns an endpoint string with the data appended
     def add_query_params(endpoint, data)
+      data = (data || {}).merge(
+        consumer_key: @consumer_key,
+        consumer_secret: @consumer_secret
+      )
       return endpoint if data.nil? || data.empty?
-
       endpoint += '?' unless endpoint.include? '?'
       endpoint += '&' unless endpoint.end_with? '?'
       endpoint + CGI.escape(flatten_hash(data).join('&'))
