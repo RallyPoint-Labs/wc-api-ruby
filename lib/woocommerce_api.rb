@@ -100,7 +100,7 @@ module WooCommerce
       endpoint += '?' unless endpoint.include? '?'
       endpoint += '&' unless endpoint.end_with? '?'
       # endpoint + CGI.escape(flatten_hash(data).join('&'))
-      flatten_hash(data).join('&')
+      endpoint + flatten_hash(data).join('&')
     end
 
     # Internal: Get URL for requests
